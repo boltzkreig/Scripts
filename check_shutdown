@@ -1,0 +1,29 @@
+#!/bin/bash
+
+################################################################################
+# A Server Shutdown Script that causes poweroff in case connection loss with
+# Network Access Point
+# It checks every 45s and double-checks after 10s in case of connection loss
+# and issuing standard `shutdown` command
+# Addition of the following line in `crontab -e` starts this script at MIDNIGHT
+# 00 00 * * * /root/check_shutdown
+################################################################################
+
+
+set -e
+while :
+do
+	if ping -c 1 192.168.1.1
+	then
+		sleep 45
+
+	else
+		sleep 10
+		if ! ping -c 2 192.168.1.1
+		then
+			/usr/sbin/shutdown
+			break 3
+
+		fi
+	fi
+done
