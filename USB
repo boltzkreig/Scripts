@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+
+################################################################################
+# An Automatic USB identifier and mounter using FZF
+# USE +1 to Monutount & -1 to Unmount
+# Mounts at $HOME/USB/name
+################################################################################
+
+set -e
+
+if [ $1 == "+1" ] ; then		
+	choice=$( lsblk -l -o NAME,LABEL,SIZE,UUID,SUBSYSTEMS,MOUNTPOINTS | grep "usb.* $" | awk 'BEGIN{print "NULL ->NONE"} { print $2"("$3") ->"$1; }' | grep -v "block" | fzf-tmux -p --reverse --height=~10 | cut -d\> -f2 )
+	#Get lsblk in this format and find `usb` entries which end with a blank space(where there should be mountpoint)
+	#Append a `NULL` option to exit and format it as "LABEL(SIZE) ->NAME". As it may go wrong and partitioned disks may appear so exclude any entry have the word `block`
+	#dmenu, fzf ,fzf-tmux (-p) can be used to choose any them and isolate anything after `>` of '->'
+
+	if [ $choice == "NONE" ]; then
+		exit 1
+	fi
+
+	location=$( lsblk -l -o NAME,LABEL,UUID | grep $choice | awk ' { if (length($2) == 0) print $1; else print $2; } ' )
+
+	mkdir -pv $HOME/USB/$location &&\
+	sudo mount /dev/$choice $HOME/USB/$location &&\
+	cd $HOME/USB/$location && pwd && ls -Alh
+fi
+
+if [ $1 == "-1" ] ; then
+	choice=$( lsblk -l -o NAME,LABEL,SIZE,UUID,MOUNTPOINTS | grep "$HOME/USB" | awk 'BEGIN { print "NULL ->NONE" } { print $2"("$3") ->"$1; }' | fzf-tmux -p --reverse --height=~10 | cut -d\> -f2 )
+
+	if [ $choice == "NONE" ]; then
+		exit 1
+	fi
+
+	location=$( lsblk -l -o NAME,LABEL,UUID | grep $choice | awk ' { print $2 } ' )
+	location=$( lsblk -l -o NAME,LABEL,UUID | grep $choice | awk ' { if (length($2) == 0) print $1; else print $2; } ' )
+
+	sync && \
+	sudo umount $HOME/USB/$location && \
+	rmdir --ignore-fail-on-non-empty -p $HOME/USB/$location && \
+	echo "The Media can be Safely Removed"
+fi
