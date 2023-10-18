@@ -1,0 +1,111 @@
+#!/bin/sh
+arg1=$1
+arg2=$2
+#set -- $(xdotool getdisplaygeometry)
+
+gap=25;				width=450;				height=250
+display_x=1920 #display_x=$1
+display_y=$((1080-24)) #display_y=$(( $2-24 ))
+
+if [ $arg1 = "--auto" ]; then
+	set -- $(xdotool search --onlyvisible --classname [^polybar^Dunst] )
+	if [ $# -lt 3 ]; then
+		width=$(( display_x/2 - gap ));			   height=$(( display_y - gap ))
+		xdotool search --onlyvisible --classname [^polybar^Dunst] windowsize %@ $width $height windowraise %@ \
+			windowmove %1 0			 0 \
+			windowmove %2 $(( width + gap )) 	 0
+	elif [ $# -lt 5 ]; then
+		width=$(( display_x/2 ));			   height=$(( display_y/2 ))
+		xdotool search --onlyvisible --classname [^polybar^Dunst] windowsize %@ $width $height windowraise %@ \
+			windowmove %1 0			 0 \
+			windowmove %2 $width	 0 \
+			windowmove %3 0			 $height \
+			windowmove %4 $width	 $height
+	else
+		width=$(( display_x/3 ));			   height=$(( display_y/3 ))
+		xdotool search --onlyvisible --classname [^polybar^Dunst] windowsize %@ $width $height windowraise %@ \
+			windowmove %1 0				 0 \
+			windowmove %2 $width		 0 \
+			windowmove %3 $((width*2))	 0 \
+			windowmove %4 0				 $height \
+			windowmove %5 $width		 $height \
+			windowmove %6 $((width*2))	 $height \
+			windowmove %7 0				 $((height*2)) \
+			windowmove %8 $width		 $((height*2)) \
+			windowmove %9 $((width*2))	 $((height*2))
+	fi
+
+elif [ $arg1 = "--large" ]; then
+	xdotool getwindowfocus windowsize $((display_x-(2*gap) )) $((display_y-(2*gap) )) windowmove $gap $gap windowraise
+
+elif [ $arg1 = "--shift" ]; then
+	if [ $arg2 = "--left" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$((display_y-(2*gap) ))
+		window_x=$gap;											    window_y=$gap
+	elif [ $arg2 = "--lefttop" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$gap;											    window_y=$gap
+	elif [ $arg2 = "--top" ]; then
+		window_size_x=$((display_x-(2*gap) ));					    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$gap;											    window_y=$gap
+	elif [ $arg2 = "--topright" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$(( (display_x/2)+(gap/2) ));					    window_y=$gap
+	elif [ $arg2 = "--right" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$((display_y-(2*gap) ))
+		window_x=$(( (display_x/2)+(gap/2) ));					    window_y=$gap
+	elif [ $arg2 = "--rightbottom" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$(( (display_x/2)+(gap/2) ));					    window_y=$(( (display_y/2)+(gap/2) ))
+	elif [ $arg2 = "--bottom" ]; then
+		window_size_x=$((display_x-(2*gap) ));					    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$gap;											    window_y=$(( (display_y/2)+(gap/2) ))
+	elif [ $arg2 = "--bottomleft" ]; then
+		window_size_x=$(( (display_x-(3*gap)) /2 ));			    window_size_y=$(( (display_y-(3*gap)) /2 ))
+		window_x=$gap;											    window_y=$(( (display_y/2)+(gap/2) ))
+	fi
+	xdotool getwindowfocus windowsize $window_size_x $window_size_y windowmove $window_x $window_y windowraise
+
+elif [ $arg1 = "--surf" ]; then
+	xdotool search --onlyvisible -class kitty windowsize 800 120 windowmove 560 5 windowraise
+	xdotool search --onlyvisible -class thorium windowsize 1900 990 windowmove 10 75 windowraise
+
+elif [ $arg1 = "--half" ]; then
+	xdotool search --onlyvisible -class kitty windowsize 935 1000 windowmove 15 25 windowraise
+	xdotool search --onlyvisible -class thorium windowsize 935 1000 windowmove 965 25 windowraise
+
+elif [ $arg1 = "--pass" ]; then
+	[ $arg2 = "--gen" ] && keepassxc &
+	xdotool search --sync --onlyvisible -class keepassxc windowsize 550 990 windowmove 10 75 windowraise
+	xdotool search --onlyvisible -class kitty windowsize 800 120 windowmove 560 5 windowraise
+	xdotool search --sync --onlyvisible -class thorium windowsize 1300 990 windowmove 575 75 windowraise
+	if [ $arg2 = "--gen" ]; then
+		xdotool mousemove --sync 200 680 click --repeat 2 1
+	fi
+
+elif [ $arg1 = "--collage" ]; then
+	xdotool search --onlyvisible --class thorium-browser windowmove 10 10 windowsize 1090 350 windowraise
+	xdotool search --onlyvisible --class mpv windowmove 1115 110 windowsize 450 250 windowraise
+	xdotool search --onlyvisible --class netflix.com windowmove 1125 10 windowsize 775 350 windowraise
+	xdotool search --onlyvisible --class xterm windowmove 1115 10 windowsize 800 80 windowraise
+	xdotool search --onlyvisible --class conky windowmove 1580 110 windowsize 340 950 windowraise
+	xdotool search --onlyvisible --class kitty windowmove 10 380 windowsize 1555 650 windowraise
+
+elif [ $arg1 = "--focus" ]; then
+	#xdotool search --onlyvisible --classname [a-z] windowsize %@ $((width-gap)) $((height-gap)) \
+	xdotool search --onlyvisible --classname [^conky^Dunst^Polybar] windowsize %@ $((width-gap)) $((height-gap)) \
+	windowmove %1 $((display_x-width))  0 \
+	windowmove %2 $((display_x-width))  $((height*1)) \
+	windowmove %3 $((display_x-width))  $((height*2)) \
+	windowmove %4 $((display_x-width))  $((height*3)) \
+	windowmove %5 $((display_x-width))  $((height*4)) \
+	windowmove %6 $((display_x-width))  $((height*5)) \
+	windowmove %7 $((display_x-width))  $((height*6)) \
+	windowmove %8 $((display_x-width))  $((height*7))
+	notify-send -t 950 "XDOTOOL" "Select Primary Window"
+	xdotool selectwindow windowsize $((display_x-(2*gap)-width)) $((display_y-(2*gap) )) windowmove $gap $gap
+
+else
+	notify-send "LAYOUT" "'--Auto'\n'--Collage'\n'--Focus'\n'--Half'\n'--Large'\n'--Pass --gen'\n'--Surf'"
+	echo "'--Auto'||'--Collage'||'--Focus'||'--Half'||'--Large'||'--Pass (--gen)'||'--Surf'"
+fi
