@@ -1,0 +1,19 @@
+#!/bin/sh
+
+################################################################################
+# A script to report high temperature on HomeServer and push notification to 
+# `ntfy.sh` server.
+################################################################################
+
+set -e
+
+temp=$(sensors | awk '/temp1/ {print $2}' | tr -d "+.°C")
+echo $temp
+
+if [ $temp -gt 400 ];
+then
+	curl \
+		-d "$(hostname) $(sensors | awk '/temp1/ {print $2}') $(uptime)" \
+		-H "Title: CPU Temp. > 40°C" \
+		URL_of_ntfy.sh_server/topic
+fi
