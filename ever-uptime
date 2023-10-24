@@ -1,0 +1,21 @@
+#!/bin/sh
+
+################################################################################
+# A script to report total uptime by `journalctl`
+################################################################################
+file1=$(mktemp)
+file2=$(mktemp)
+file=$(mktemp)
+
+journalctl --list-boots -q | awk '{print $4" "$5;}' | tail -n +2 | xargs -I{} date -d '{}' +%s > "$file1"
+journalctl --list-boots -q | awk '{print $8" "$9;}' | tail -n +2 | xargs -I{} date -d '{}' +%s > "$file2"
+paste "$file1" "$file2" > "$file"
+time=$(awk -v sum=0 '{sum=sum-$1+$2;} END { print sum }' "$file")
+printf "%d -> %dd %02dh %02dm %02ds\n" \
+	$time \
+	$(( time / 86400 )) \
+	$(( (time % 86400 ) / 3600 )) \
+	$(( ( time % 360 ) / 60 )) \
+	$(( time % 60 ))
+
+rm "$file1" "$file2" "$file"
