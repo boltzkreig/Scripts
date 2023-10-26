@@ -1,0 +1,31 @@
+#!/bin/sh
+
+################################################################################
+# A screenlock-utility script which can lock using both i3lock and xtrlock
+# with following behavious:
+# 1) if the device is charging set cmatrix as savescreen
+# 2) if any window covers more than 50% of screen show static image for privacy
+# 3) in othercases just take a screenshot, blur for visual spectacle
+# NOTE: Charging mode is effective only on floating window-manager
+################################################################################
+
+set -e
+
+AC=$(upower -i $(upower -e | grep "line") | grep "online" | grep yes | wc -l )
+size=$(xdotool search --onlyvisible --class [^conky] getwindowgeometry --shell %@ | grep "HEIGHT\|WIDTH" | \
+	awk -F'=' -v FINAL=0 -v sum=0 '{ (NR%2)?sum=$2 : sum=sum*$2; if(sum>FINAL) FINAL=sum; } END{print FINAL}' )
+
+if [ $AC -eq 1 ]; then
+	xterm -maximized -e "cmatrix -bs -u 9" &
+	xtrlock
+	killall cmatrix
+elif [ $size -eq 0 ] || [ $size -gt 1036800 ]; then
+	mpv --really-quiet $HOME/Multimedia/lock.mp3 &
+	i3lock -n -i $HOME/Multimedia/Wallpapers/0253-blur.png -f -e -b
+else
+#import -window root /tmp/screenshot.png
+	ffmpeg -loglevel panic -f x11grab -video_size 1920x1080 -i $DISPLAY -vframes 1 /tmp/screenshot.png -y
+	$(sleep 0.5 && mpv --really-quiet $HOME/Multimedia/lock.mp3) &
+	nice --15 convert /tmp/screenshot.png -blur 20x8 /home/bolt/Multimedia/s_Ark.png -gravity center -composite -matte /tmp/screenshotf.png
+	i3lock -n -i /tmp/screenshotf.png -f -e -b
+fi
