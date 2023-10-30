@@ -1,0 +1,57 @@
+#! /usr/bin/sh
+################################################################################
+# A complimentary information script for vim add-on (stripped-down minimalistic
+# piece of configuration that can be directly added to `.vimrc` for features of
+# hackish nature) to replace default vim splash screen.
+################################################################################
+location="XYZ"
+cat << "EOF"
+██╗   ██╗██╗███╗   ███╗
+██║   ██║██║████╗ ████║
+██║   ██║██║██╔████╔██║
+╚██╗ ██╔╝██║██║╚██╔╝██║
+ ╚████╔╝ ██║██║ ╚═╝ ██║
+  ╚═══╝  ╚═╝╚═╝     ╚═╝
+
+EOF
+
+date
+echo ""
+
+#printf "%s\t\t@\t\t%s %s %s %s\n" $(whoami) $(hostname) $(tty | cut -d"/" -f3-)
+whoami | awk '{print "User:\t\t\t\t" $0}'
+hostname | awk '{print "System:\t\t\t\t" $0}'
+awk -F\" '/PRETTY/ {print "OS:\t\t\t\t\t" $2}' /etc/os-release
+echo ""
+
+free -h | awk '/Mem/ {print "Free Memory:\t\t\t" ($7/$2)*100"% ---- " $7 "/" $2 }' \
+|| vmstat | tail -n1 | awk '{print "Free Memory:\t\t\t" ($3/$4)*100"% ---- " $4 "/" $5 }'
+df -h 2>/dev/null | awk '/\/$/ {print "Used Space:\t\t\t" $5 " ---- " $3 "/" $2 }'
+echo ""
+
+sensors | awk '/CPU/ {print "CPU Temp:\t\t\t"$2} /RPM/ {print "Fan:\t\t\t\t\t"$3$4} '
+ps -aux | awk -v NUMS="$(grep ^proc /proc/cpuinfo | wc -l)" '{sum+=$3} END{print "CPU usage:\t\t\t" sum/NUMS "%"}'
+#ps -aux | awk '{sum+=$3} END{print "CPU Usage:\t\t\t" sum/NR "%"}'
+awk -v total=0 -v idle=0 '/^cpu / { idle=$5;for(i=2;i<=NF;i++)total+=$i}END{print "CPU Usage:\t\t\t"100-(idle/total)*100"%"}' /proc/stat
+cat /proc/cpuinfo | grep "MHz" | awk '{sum+=$4} END{print "Avg CPU Freq:\t\t" sum/NR "MHz"}'
+echo ""
+
+uptime -p | sed -e 's/up /Uptime:\t\t\t\t/'
+uptime | awk '{print "Avg Load:" "\t\t\t"  $(NF-2)" "$(NF-1)" "$NF } '
+h=$( awk '{print "Battery Level:\t\t" $1 "%" }' /sys/class/power_supply/BAT0/capacity )
+k=$( upower -i "$(upower -e | grep 'battery')" | awk '/time to empty/{print "("$4" "$5 "🔋)" }' && [ "$(cat /sys/class/power_supply/AC/online)" = 1 ] && echo "🗲")
+echo "$h $k \n"
+
+ip -br a | grep 'UP' | awk '{print "Private IP:\t\t\t" $3}' \
+|| ifconfig | grep 'inet' | awk '{print "Private IP:\t\t\t" $2}'
+printf "Public IP:\t\t\t%s\n" $(dig +short +timeout=1 +tries=1 myip.opendns.com @resolver1.opendns.com -4 2> /dev/null) \
+|| drill +timeout=1 +tries=1 myip.opendns.com @resolver1.opendns.com | awk '/^myip/ {print "Public IP:\t\t\t" $NF }'
+#curl -s wttr.in/"$location"?format=4 | sed 's/+/ /g'
+
+
+#_|      _|  _|_|_|  _|      _|
+#_|      _|    _|    _|_|  _|_|
+#_|      _|    _|    _|  _|  _|
+  #_|  _|      _|    _|      _|
+    #_|      _|_|_|  _|      _|
+
