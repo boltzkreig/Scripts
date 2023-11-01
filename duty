@@ -1,0 +1,33 @@
+#! /usr/bin/bash
+
+################################################################################
+# An Automatic updation script to keep system in good condition
+#
+################################################################################
+set -e
+trap exit SIGINT
+
+if [[ $1 == "-f" ]]; then
+	sudo nala fetch --auto -v -y
+fi
+
+sudo nala update
+sudo nala upgrade -y
+
+echo "Updating mandb..."
+sudo mandb > /dev/null 2>&1
+echo "Updating mlocate..."
+sudo updatedb
+echo "Updating tldr..."
+tldr -u
+
+echo "Updating vim-plugins..."
+vim +'PlugUpdate --sync' +qa
+echo "Updating tmux-plugins..."
+$HOME/.tmux/plugins/tpm/bin/update_plugins all
+
+if [[ $1 == "-f" ]]; then
+	backup -fi
+else
+	backup
+fi
