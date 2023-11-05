@@ -4,8 +4,8 @@
 # A Server Shutdown Script that causes poweroff in case connection loss with
 # Network Access Point
 # It checks every 45s and double-checks after 10s in case of connection loss
-# and issuing standard `shutdown` command
-# Addition of the following line in `crontab -e` starts this script at MIDNIGHT
+# and issues a standard `shutdown` command
+# Addition of the following line in `crontab -e` starts this script at MIDNIGHT for Low-Availability HomeServer
 # 00 00 * * * /root/check_shutdown
 ################################################################################
 
