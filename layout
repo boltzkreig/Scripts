@@ -1,11 +1,23 @@
 #!/bin/sh
-arg1=$1
-arg2=$2
-#set -- $(xdotool getdisplaygeometry)
+
+################################################################################
+# A simple script to imitate tile-on-demand for floating window-managers.
+# It is designed for a standard 1920x1080 single monitor and can be made dynamic 
+# by substituting the commented text in the beginning
+#
+# It has some sensible options baked it which can be changed as per requirement
+# NOTE: `Polybar`, `Dunst` and `Conky` are exempted from rearrangement
+################################################################################
+
+arg1=$1;			arg2=$2;				#set -- $(xdotool getdisplaygeometry)
 
 gap=25;				width=450;				height=250
-display_x=1920 #display_x=$1
-display_y=$((1080-24)) #display_y=$(( $2-24 ))
+display_x=1920								#display_x=$argv1
+display_y=$((1080-24))						#display_y=$(( $argv2-24 ))
+
+term="kitty"
+brow="thorium"
+passwdmgr="keepassxc"
 
 if [ $arg1 = "--auto" ]; then
 	set -- $(xdotool search --onlyvisible --classname [^polybar^Dunst] )
@@ -67,29 +79,29 @@ elif [ $arg1 = "--shift" ]; then
 	xdotool getwindowfocus windowsize $window_size_x $window_size_y windowmove $window_x $window_y windowraise
 
 elif [ $arg1 = "--surf" ]; then
-	xdotool search --onlyvisible -class kitty windowsize 800 120 windowmove 560 5 windowraise
-	xdotool search --onlyvisible -class thorium windowsize 1900 990 windowmove 10 75 windowraise
+	xdotool search --onlyvisible -class $term windowsize 800 120 windowmove 560 5 windowraise
+	xdotool search --onlyvisible -class $brow windowsize 1900 990 windowmove 10 75 windowraise
 
 elif [ $arg1 = "--half" ]; then
-	xdotool search --onlyvisible -class kitty windowsize 935 1000 windowmove 15 25 windowraise
-	xdotool search --onlyvisible -class thorium windowsize 935 1000 windowmove 965 25 windowraise
+	xdotool search --onlyvisible -class $term windowsize 935 1000 windowmove 15 25 windowraise
+	xdotool search --onlyvisible -class $brow windowsize 935 1000 windowmove 965 25 windowraise
 
 elif [ $arg1 = "--pass" ]; then
-	[ $arg2 = "--gen" ] && keepassxc &
-	xdotool search --sync --onlyvisible -class keepassxc windowsize 550 990 windowmove 10 75 windowraise
-	xdotool search --onlyvisible -class kitty windowsize 800 120 windowmove 560 5 windowraise
-	xdotool search --sync --onlyvisible -class thorium windowsize 1300 990 windowmove 575 75 windowraise
+	[ $arg2 = "--gen" ] && $passwdmgr &
+	xdotool search --sync --onlyvisible -class $passwdmgr windowsize 550 990 windowmove 10 75 windowraise
+	xdotool search --onlyvisible -class $term windowsize 800 120 windowmove 560 5 windowraise
+	xdotool search --sync --onlyvisible -class $brow windowsize 1300 990 windowmove 575 75 windowraise
 	if [ $arg2 = "--gen" ]; then
 		xdotool mousemove --sync 200 680 click --repeat 2 1
 	fi
 
 elif [ $arg1 = "--collage" ]; then
-	xdotool search --onlyvisible --class thorium-browser windowmove 10 10 windowsize 1090 350 windowraise
+	xdotool search --onlyvisible --class $brow windowmove 10 10 windowsize 1090 350 windowraise
 	xdotool search --onlyvisible --class mpv windowmove 1115 110 windowsize 450 250 windowraise
 	xdotool search --onlyvisible --class netflix.com windowmove 1125 10 windowsize 775 350 windowraise
 	xdotool search --onlyvisible --class xterm windowmove 1115 10 windowsize 800 80 windowraise
 	xdotool search --onlyvisible --class conky windowmove 1580 110 windowsize 340 950 windowraise
-	xdotool search --onlyvisible --class kitty windowmove 10 380 windowsize 1555 650 windowraise
+	xdotool search --onlyvisible --class $term windowmove 10 380 windowsize 1555 650 windowraise
 
 elif [ $arg1 = "--focus" ]; then
 	#xdotool search --onlyvisible --classname [a-z] windowsize %@ $((width-gap)) $((height-gap)) \
