@@ -1,52 +1,52 @@
 #!/usr/bin/sh
 
 ################################################################################
-# A Battery Checking Script that causes notification in case of Low Battery and
-# High Battery
+# A Battery Checking Script that causes notification in case of Low, High and
+# Full Battery charge
 # If X-server is available then it uses `notify-send` else optionally `Wall`
-# */5 * * * * /home/bolt/script/check_battery
+# It is meant to run the lifetime of a session and inform MIN/MAX/FULL Battery
+# status.
+# It notifies FULL charge thrice, MAX/FULL notification can be disabled by:
+# touch /tmp/dis-max-batt-lim
+# DEBUG: uncomment `set -x`
 ################################################################################
 
-set -e
+#set -x
 
 min_charge=45
 max_charge=80
 interval=30
 counter_FUL=0
 
-
 notify() {
 	mpv --really-quiet "$HOME/Multimedia/buzzer.mp3" &
+	#notify-send -i /usr/share/icons/Adwaita/50x48/status/dialog-warning-symbolic.symbolic.png "BATTERY" "FIGURE"
 	notify-send -u critical -i /usr/share/icons/Adwaita/48x48/status/dialog-warning-symbolic.symbolic.png "BATTERY" "$1"
 	sleep $interval
 }
 
-reset(){
-	[ "$1" -eq 0 ] && counter_FUL=0
-	sleep $((interval*10))
-}
-
 while :
 	do
-#	status=$(upower -i $(upower -e | grep "DisplayDevice") | grep "state" | cut -c 26- )
-	# string length is non-zero if AC Powered
+
+	if [ -f /tmp/dis-max-batt-lim ]; then
+		counter_FUL=4
+	fi
+
+#	string length is non-zero if AC Powered
 	AC="$(upower -i "$(upower -e | grep "line")" | grep "online" | grep -c yes )"
 	charge="$(upower -i "$(upower -e | grep "DisplayDevice")" | grep "percentage" | tr -dc '[:digit:]' )"
 
 	if [ $counter_FUL -lt 3 ] && [ "$charge" -eq 100 ] && [ "$AC" -eq 1 ]; then
 		notify "Fully Charged"
 		counter_FUL=$((counter_FUL+1));
-
-	elif [ "$charge" -lt $((max_charge+5)) ] && [ "$charge" -gt $((max_charge-5)) ] && [ "$AC" -eq 1 ]; then
+	elif [ $counter_FUL -lt 3 ] && [ "$charge" -lt $((max_charge+0)) ] && [ "$charge" -gt $((max_charge-5)) ] && [ "$AC" -eq 1 ]; then
 		notify "Max Charge Reached: Unplug Charger"
-
-	elif [ "$charge" -lt $min_charge ] && [ "$AC" -eq 0 ]; then
+	elif [ "$charge" -lt $((min_charge+5)) ] && [ "$AC" -eq 0 ]; then
 		notify "Min Charge Reached: Plug Charger"
-
 	else
-		reset "$AC"
+		counter_FUL=0
+		sleep $((interval*10))
 	fi
 
 done
 #wall "$MSSG"
-
