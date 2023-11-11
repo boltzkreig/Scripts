@@ -2,8 +2,8 @@
 
 ################################################################################
 # An Automatic USB identifier and mounter using FZF
-# USE +1 to Monutount & -1 to Unmount
-# Mounts at $HOME/USB/name
+# USE +1 to Mount & -1 to Unmount as Arguments
+# Mounts at $HOME/USB/<name>
 ################################################################################
 
 set -e
